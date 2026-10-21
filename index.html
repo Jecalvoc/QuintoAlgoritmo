@@ -1,0 +1,1874 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🍳 Chef Master - Cocina Colombiana</title>
+<style>
+@import url('https://cdn.jsdelivr.net/fontsource/fonts/fredoka@latest/latin-400-normal.css');
+@import url('https://cdn.jsdelivr.net/fontsource/fonts/nunito@latest/latin-400-normal.css');
+@import url('https://cdn.jsdelivr.net/fontsource/fonts/nunito@latest/latin-700-normal.css');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --primary: #FF6B35;
+  --secondary: #F7C948;
+  --success: #2ECC71;
+  --danger: #E74C3C;
+  --dark: #2C3E50;
+  --light: #ECF0F1;
+  --bg: #FFF8F0;
+}
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+.game-header {
+  background: linear-gradient(135deg, var(--primary), #FF8C42);
+  padding: 12px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 15px rgba(255,107,53,0.3);
+  position: relative;
+  z-index: 100;
+}
+
+.game-header h1 {
+  font-family: 'Fredoka', sans-serif;
+  color: white;
+  font-size: 1.8rem;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+.header-info {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.header-info span {
+  color: white;
+  font-weight: 700;
+  font-size: 1rem;
+  background: rgba(255,255,255,0.2);
+  padding: 6px 16px;
+  border-radius: 20px;
+}
+
+.level-progress {
+  background: #fff;
+  padding: 8px 30px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 2px solid #f0e6d6;
+}
+
+.level-dot {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 3px solid #ddd;
+  background: white;
+  color: #999;
+}
+
+.level-dot.active {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: white;
+  transform: scale(1.15);
+  box-shadow: 0 3px 10px rgba(255,107,53,0.4);
+}
+
+.level-dot.completed {
+  border-color: var(--success);
+  background: var(--success);
+  color: white;
+}
+
+.level-dot.locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.level-connector {
+  flex: 1;
+  height: 3px;
+  background: #ddd;
+  border-radius: 2px;
+}
+
+.level-connector.completed {
+  background: var(--success);
+}
+
+.game-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  height: calc(100vh - 120px);
+}
+
+.result-panel {
+  background: linear-gradient(180deg, #FFF5EB, #FFE8D6);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  border-right: 3px solid #f0d6b8;
+}
+
+.recipe-title {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.6rem;
+  color: var(--dark);
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.recipe-subtitle {
+  font-size: 0.95rem;
+  color: #888;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.result-display {
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8rem;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+  position: relative;
+  transition: all 0.5s;
+}
+
+.result-display.success {
+  animation: successPulse 0.6s ease;
+  box-shadow: 0 10px 40px rgba(46,204,113,0.3);
+  background: linear-gradient(135deg, #d4efdf, #a9dfbf);
+}
+
+.result-display.failure {
+  animation: failureShake 0.5s ease;
+  box-shadow: 0 10px 40px rgba(231,76,60,0.3);
+  background: linear-gradient(135deg, #fadbd8, #f1948a);
+}
+
+.result-message {
+  margin-top: 20px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  text-align: center;
+  min-height: 40px;
+}
+
+.result-message.success { color: var(--success); }
+.result-message.failure { color: var(--danger); }
+
+.step-indicator {
+  margin-top: 15px;
+  font-size: 0.9rem;
+  color: #666;
+  background: white;
+  padding: 8px 20px;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.cooking-animation {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: particleFly 1s ease-out forwards;
+}
+
+@keyframes particleFly {
+  0% { opacity: 1; transform: translate(0,0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0); }
+}
+
+@keyframes successPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+@keyframes failureShake {
+  0%, 100% { transform: translateX(0) rotate(0); }
+  20% { transform: translateX(-15px) rotate(-5deg); }
+  40% { transform: translateX(15px) rotate(5deg); }
+  60% { transform: translateX(-10px) rotate(-3deg); }
+  80% { transform: translateX(10px) rotate(3deg); }
+}
+
+.smoke {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  background: rgba(100,100,100,0.3);
+  border-radius: 50%;
+  animation: smokeRise 2s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes smokeRise {
+  0% { opacity: 0.6; transform: translateY(0) scale(0.5); }
+  100% { opacity: 0; transform: translateY(-150px) scale(2); }
+}
+
+.sparkle {
+  position: absolute;
+  font-size: 1.5rem;
+  animation: sparkleAnim 1s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes sparkleAnim {
+  0% { opacity: 1; transform: translateY(0) scale(0.5) rotate(0deg); }
+  100% { opacity: 0; transform: translateY(-80px) scale(1.2) rotate(180deg); }
+}
+
+.confetti {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  animation: confettiFall 2s ease-in forwards;
+  pointer-events: none;
+}
+
+@keyframes confettiFall {
+  0% { opacity: 1; transform: translateY(-20px) rotate(0deg); }
+  100% { opacity: 0; transform: translateY(400px) rotate(720deg); }
+}
+
+.interaction-panel {
+  background: white;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.phase-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.phase-tab {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  background: var(--light);
+  color: #666;
+}
+
+.phase-tab.active {
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 4px 12px rgba(255,107,53,0.3);
+}
+
+.phase-tab:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.phase-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.phase-title {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.1rem;
+  color: var(--dark);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.items-pool {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 15px;
+  min-height: 60px;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 2px dashed #ddd;
+}
+
+.drop-zone {
+  min-height: 60px;
+  padding: 10px;
+  background: #fff;
+  border-radius: 12px;
+  border: 2px dashed var(--primary);
+  margin-bottom: 10px;
+  transition: all 0.3s;
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-content: flex-start;
+}
+
+.drop-zone.drag-over {
+  background: #FFF5EB;
+  border-color: var(--secondary);
+  transform: scale(1.02);
+}
+
+.drop-zone-label {
+  font-size: 0.8rem;
+  color: #aaa;
+  text-align: center;
+  padding: 5px;
+  width: 100%;
+}
+
+.item-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+  font-weight: 600;
+  user-select: none;
+  position: relative;
+}
+
+.item-card:hover {
+  border-color: var(--primary);
+  box-shadow: 0 3px 10px rgba(255,107,53,0.2);
+  transform: translateY(-2px);
+}
+
+.item-card:active {
+  transform: scale(0.95);
+}
+
+.item-card.selected {
+  border-color: var(--primary);
+  background: #FFF5EB;
+  box-shadow: 0 3px 10px rgba(255,107,53,0.2);
+}
+
+.item-card .emoji {
+  font-size: 1.3rem;
+}
+
+.item-card.correct {
+  border-color: var(--success) !important;
+  background: #d5f5e3 !important;
+  animation: correctBounce 0.4s ease;
+}
+
+.item-card.incorrect {
+  border-color: var(--danger) !important;
+  background: #fadbd8 !important;
+  animation: incorrectShake 0.4s ease;
+}
+
+@keyframes correctBounce {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+@keyframes incorrectShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  75% { transform: translateX(8px); }
+}
+
+.step-slot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  cursor: grab;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+}
+
+.step-slot:hover {
+  border-color: var(--primary);
+  box-shadow: 0 3px 10px rgba(255,107,53,0.15);
+}
+
+.step-slot .step-number {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.step-slot.correct {
+  border-color: var(--success);
+  background: #d5f5e3;
+}
+
+.step-slot.incorrect {
+  border-color: var(--danger);
+  background: #fadbd8;
+}
+
+.step-slot.dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+}
+
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn:hover { transform: translateY(-2px); }
+.btn:active { transform: translateY(0); }
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), #FF8C42);
+  color: white;
+  box-shadow: 0 4px 15px rgba(255,107,53,0.3);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, var(--success), #27AE60);
+  color: white;
+  box-shadow: 0 4px 15px rgba(46,204,113,0.3);
+}
+
+.btn-secondary {
+  background: var(--light);
+  color: #666;
+}
+
+.btn-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+  flex-wrap: wrap;
+}
+
+.welcome-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #FF6B35, #FF8C42, #F7C948);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  transition: all 0.5s;
+}
+
+.welcome-screen.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(1.1);
+}
+
+.welcome-content {
+  text-align: center;
+  color: white;
+}
+
+.welcome-content h1 {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 3.5rem;
+  margin-bottom: 10px;
+  text-shadow: 3px 3px 6px rgba(0,0,0,0.2);
+}
+
+.welcome-content p {
+  font-size: 1.2rem;
+  margin-bottom: 30px;
+  opacity: 0.9;
+}
+
+.welcome-content .btn {
+  font-size: 1.3rem;
+  padding: 16px 40px;
+  background: white;
+  color: var(--primary);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+}
+
+.welcome-emoji {
+  font-size: 5rem;
+  margin-bottom: 20px;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+.completion-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.7);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.completion-overlay.show {
+  display: flex;
+}
+
+.completion-card {
+  background: white;
+  border-radius: 24px;
+  padding: 40px;
+  text-align: center;
+  max-width: 450px;
+  animation: popIn 0.5s ease;
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.completion-card h2 {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 2rem;
+  color: var(--primary);
+  margin: 15px 0;
+}
+
+.completion-card .big-emoji {
+  font-size: 5rem;
+}
+
+.completion-card p {
+  color: #666;
+  margin-bottom: 20px;
+  font-size: 1.1rem;
+}
+
+.stars {
+  font-size: 2.5rem;
+  margin: 15px 0;
+}
+
+.cooking-progress {
+  width: 100%;
+  margin-top: 20px;
+}
+
+.cooking-step-list {
+  list-style: none;
+  padding: 0;
+}
+
+.cooking-step-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  border-radius: 10px;
+  background: white;
+  font-size: 0.85rem;
+  transition: all 0.3s;
+  opacity: 0.5;
+}
+
+.cooking-step-item.active {
+  opacity: 1;
+  background: #FFF5EB;
+  border-left: 4px solid var(--primary);
+  transform: translateX(5px);
+}
+
+.cooking-step-item.done {
+  opacity: 1;
+  background: #d5f5e3;
+  border-left: 4px solid var(--success);
+}
+
+.cooking-step-item.failed {
+  opacity: 1;
+  background: #fadbd8;
+  border-left: 4px solid var(--danger);
+}
+
+.cooking-step-item .cs-icon {
+  font-size: 1.2rem;
+}
+
+.fail-overlay {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.fail-overlay.show {
+  display: flex;
+}
+
+.fail-text {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 3rem;
+  color: var(--danger);
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+  animation: failPop 0.8s ease;
+}
+
+@keyframes failPop {
+  0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+  50% { transform: scale(1.3) rotate(5deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 0; }
+}
+
+.success-text {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 3rem;
+  color: var(--success);
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+  animation: successPop 1s ease;
+}
+
+@keyframes successPop {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.floating-ingredient {
+  position: absolute;
+  font-size: 2rem;
+  animation: floatIn 0.6s ease forwards;
+  pointer-events: none;
+  z-index: 15;
+}
+
+@keyframes floatIn {
+  0% { opacity: 0; transform: scale(0.3) rotate(-20deg); }
+  60% { opacity: 1; transform: scale(1.2) rotate(5deg); }
+  100% { opacity: 0; transform: scale(0.8) translateY(-30px) rotate(0deg); }
+}
+
+.hint-box {
+  background: #FFF9E6;
+  border: 2px solid var(--secondary);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  font-size: 0.85rem;
+  color: #8B7000;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.hint-box .hint-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.timer-bar {
+  height: 4px;
+  background: #eee;
+  border-radius: 2px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.timer-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--success), var(--secondary), var(--danger));
+  border-radius: 2px;
+  transition: width 1s linear;
+}
+
+.selected-count {
+  font-size: 0.85rem;
+  color: var(--primary);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+@media (max-width: 768px) {
+  .game-container {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
+  .result-panel {
+    border-right: none;
+    border-bottom: 3px solid #f0d6b8;
+  }
+  .result-display {
+    width: 180px;
+    height: 180px;
+    font-size: 5rem;
+  }
+  .game-header h1 { font-size: 1.2rem; }
+  .welcome-content h1 { font-size: 2rem; }
+}
+
+.interaction-panel::-webkit-scrollbar { width: 6px; }
+.interaction-panel::-webkit-scrollbar-track { background: transparent; }
+.interaction-panel::-webkit-scrollbar-thumb { background: #ddd; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="welcome-screen" id="welcomeScreen">
+  <div class="welcome-content">
+    <div class="welcome-emoji">👨‍🍳</div>
+    <h1>Chef Master</h1>
+    <p>¡Aprende a preparar recetas deliciosas ordenando ingredientes y pasos!</p>
+    <button class="btn" onclick="startGame()">🍳 ¡Comenzar a Cocinar!</button>
+  </div>
+</div>
+
+<div class="completion-overlay" id="completionOverlay">
+  <div class="completion-card">
+    <div class="big-emoji" id="completionEmoji">🏆</div>
+    <h2 id="completionTitle">¡Nivel Completado!</h2>
+    <div class="stars" id="completionStars">⭐⭐⭐</div>
+    <p id="completionText">¡Has preparado una deliciosa arepa!</p>
+    <button class="btn btn-primary" id="completionBtn" onclick="nextLevel()">Siguiente Nivel ➡️</button>
+  </div>
+</div>
+
+<header class="game-header">
+  <h1>🍳 Chef Master</h1>
+  <div class="header-info">
+    <span id="scoreDisplay">⭐ Puntos: 0</span>
+    <span id="levelDisplay">📖 Nivel 1/8</span>
+  </div>
+</header>
+
+<div class="level-progress" id="levelProgress"></div>
+
+<div class="game-container">
+  <div class="result-panel" id="resultPanel">
+    <div class="recipe-title" id="recipeTitle">Arepa Tradicional Colombiana</div>
+    <div class="recipe-subtitle" id="recipeSubtitle">Ordena los ingredientes correctamente</div>
+    <div class="result-display" id="resultDisplay">🫓</div>
+    <div class="result-message" id="resultMessage"></div>
+    <div class="step-indicator" id="stepIndicator">Fase 1: Ingredientes</div>
+    <div class="cooking-progress" id="cookingProgress"></div>
+    <div class="cooking-animation" id="cookingAnimation"></div>
+    <div class="fail-overlay" id="failOverlay">
+      <div class="fail-text" id="failText">¡ERROR!</div>
+    </div>
+  </div>
+
+  <div class="interaction-panel" id="interactionPanel">
+    <div class="phase-tabs">
+      <button class="phase-tab active" id="tabIngredients" onclick="switchPhase('ingredients')">🥘 Ingredientes</button>
+      <button class="phase-tab" id="tabSteps" onclick="switchPhase('steps')" disabled>📋 Pasos</button>
+    </div>
+    <div class="timer-bar"><div class="timer-fill" id="timerFill" style="width:100%"></div></div>
+    <div class="phase-content" id="phaseContent"></div>
+  </div>
+</div>
+
+<script>
+const levels = [
+  {
+    id: 1,
+    name: "Arepa Tradicional Colombiana",
+    emoji: "🫓",
+    subtitle: "La reina de la cocina colombiana",
+    ingredients: [
+      { id: "masarepa", name: "Harina PAN (Masarepa)", emoji: "🌽" },
+      { id: "agua", name: "Agua tibia", emoji: "💧" },
+      { id: "sal", name: "Sal", emoji: "🧂" },
+      { id: "aceite", name: "Aceite", emoji: "🫒" },
+      { id: "queso", name: "Queso (opcional)", emoji: "🧀" }
+    ],
+    wrongIngredients: [
+      { id: "leche", name: "Leche condensada", emoji: "🥛" },
+      { id: "chocolate", name: "Chocolate", emoji: "🍫" },
+      { id: "arroz", name: "Arroz crudo", emoji: "🍚" }
+    ],
+    steps: [
+      { id: "s1", text: "Mezclar la harina con agua tibia y sal en un bowl", emoji: "🥣" },
+      { id: "s2", text: "Amasar hasta obtener una masa suave y uniforme", emoji: "🤲" },
+      { id: "s3", text: "Formar bolas y aplanar dando forma de disco", emoji: "🫓" },
+      { id: "s4", text: "Calentar sartén o budare con aceite", emoji: "🍳" },
+      { id: "s5", text: "Cocinar cada lado por 5-7 minutos hasta dorar", emoji: "⏰" },
+      { id: "s6", text: "¡Servir caliente con queso, mantequilla o relleno!", emoji: "🎉" }
+    ],
+    wrongSteps: [
+      { id: "ws1", text: "Hervir en agua durante 30 minutos", emoji: "🫗" },
+      { id: "ws2", text: "Congelar por 2 horas antes de cocinar", emoji: "🧊" }
+    ]
+  },
+  {
+    id: 2,
+    name: "Sándwich Clásico",
+    emoji: "🥪",
+    subtitle: "Un clásico que nunca falla",
+    ingredients: [
+      { id: "pan", name: "Pan de molde", emoji: "🍞" },
+      { id: "jamon", name: "Jamón", emoji: "🥓" },
+      { id: "queso", name: "Queso", emoji: "🧀" },
+      { id: "lechuga", name: "Lechuga", emoji: "🥬" },
+      { id: "tomate", name: "Tomate", emoji: "🍅" },
+      { id: "mayonesa", name: "Mayonesa", emoji: "🫙" }
+    ],
+    wrongIngredients: [
+      { id: "salsa", name: "Salsa de tomate picante", emoji: "🌶️" },
+      { id: "helado", name: "Helado de vainilla", emoji: "🍦" },
+      { id: "pescado", name: "Pescado crudo", emoji: "🐟" }
+    ],
+    steps: [
+      { id: "s1", text: "Tomar dos slices de pan de molde", emoji: "🍞" },
+      { id: "s2", text: "Untar mayonesa en una cara de cada pan", emoji: "🔪" },
+      { id: "s3", text: "Colocar las hojas de lechuga", emoji: "🥬" },
+      { id: "s4", text: "Agregar las rodajas de tomate", emoji: "🍅" },
+      { id: "s5", text: "Poner las capas de jamón y queso", emoji: "🥓" },
+      { id: "s6", text: "Cerrar el sándwich y cortar en diagonal", emoji: "🥪" }
+    ],
+    wrongSteps: [
+      { id: "ws1", text: "Hornear a 200°C por 45 minutos", emoji: "🔥" },
+      { id: "ws2", text: "Licuar todos los ingredientes", emoji: "🫗" }
+    ]
+  },
+  {
+    id: 3,
+    name: "Milo (Chocolate)",
+    emoji: "🥤",
+    subtitle: "La bebida energética favorita",
+    ingredients: [
+      { id: "milo", name: "Milo en polvo", emoji: "🍫" },
+      { id: "leche", name: "Leche fría", emoji: "🥛" },
+      { id: "azucar", name: "Azúcar (opcional)", emoji: "🍬" },
+      { id: "hielo", name: "Hielo", emoji: "🧊" },
+      { id: "vaso", name: "Vaso grande", emoji: "🥛" }
+    ],
+    wrongIngredients: [
+      { id: "cebolla", name: "Cebolla", emoji: "🧅" },
+      { id: "aji", name: "Ají picante", emoji: "🌶️" },
+      { id: "huevo", name: "Huevo crudo", emoji: "🥚" }
+    ],
+    steps: [
+      { id: "s1", text: "Tomar un vaso grande y limpio", emoji: "🥛" },
+      { id: "s2", text: "Agregar 3 cucharadas de Milo en polvo", emoji: "🍫" },
+      { id: "s3", text: "Verter la leche fría poco a poco", emoji: "🥛" },
+      { id: "s4", text: "Revolver bien hasta disolver el polvo", emoji: "🥄" },
+      { id: "s5", text: "Agregar azúcar al gusto si se desea", emoji: "🍬" },
+      { id: "s6", text: "Añadir hielo y ¡a disfrutar bien frío!", emoji: "🧊" }
+    ],
+    wrongSteps: [
+      { id: "ws1", text: "Hervir la leche con el Milo por 20 min", emoji: "🔥" },
+      { id: "ws2", text: "Congelar hasta que sea un bloque sólido", emoji: "❄️" }
+    ]
+  },
+  {
+    id: 4,
+    name: "Hamburguesa Casera",
+    emoji: "🍔",
+    subtitle: "La mejor hamburguesa artesanal",
+    ingredients: [
+      { id: "pan", name: "Pan de hamburguesa", emoji: "🍔" },
+      { id: "carne", name: "Carne molida", emoji: "🥩" },
+      { id: "queso", name: "Queso cheddar", emoji: "🧀" },
+      { id: "lechuga", name: "Lechuga", emoji: "🥬" },
+      { id: "tomate", name: "Tomate", emoji: "🍅" },
+      { id: "cebolla", name: "Cebolla", emoji: "🧅" },
+      { id: "salsa", name: "Salsa de tomate", emoji: "🟥" },
+      { id: "pepinos", name: "Pepinillos", emoji: "🥒" }
+    ],
+    wrongIngredients: [
+      { id: "arroz", name: "Arroz blanco", emoji: "🍚" },
+      { id: "fresa", name: "Fresas con crema", emoji: "🍓" },
+      { id: "gelatina", name: "Gelatina", emoji: "🟡" }
+    ],
+    steps: [
+      { id: "s1", text: "Sazonar y formar la carne en patties", emoji: "🥩" },
+      { id: "s2", text: "Calentar la parrilla o sartén a fuego alto", emoji: "🔥" },
+      { id: "s3", text: "Cocinar el patty 4 min por cada lado", emoji: "🍳" },
+      { id: "s4", text: "Poner queso sobre el patty para derretir", emoji: "🧀" },
+      { id: "s5", text: "Tostar ligeramente el pan cortado", emoji: "🍞" },
+      { id: "s6", text: "Armar: pan, salsa, lechuga, tomate, carne, cebolla, pepinillos, pan", emoji: "🍔" }
+    ],
+    wrongSteps: [
+      { id: "ws1", text: "Hervir la carne en agua con sal", emoji: "🫗" },
+      { id: "ws2", text: "Meter todo al microondas 15 minutos", emoji: "📡" }
+    ]
+  },
+  {
+    id: 5,
+    name: "Arroz Blanco",
+    emoji: "🍚",
+    subtitle: "El acompañante perfecto",
+    ingredients: [
+      { id: "arroz", name: "Arroz", emoji: "🍚" },
+      { id: "agua", name: "Agua", emoji: "💧" },
+      { id: "sal", name: "Sal", emoji: "🧂" },
+      { id: "aceite", name: "Aceite", emoji: "🫒" },
+      { id: "ajo", name: "Ajo (opcional)", emoji: "🧄" }
+    ],
+    wrongIngredients: [
+      { id: "leche", name: "Leche", emoji: "🥛" },
+      { id: "cacao", name: "Cacao en polvo", emoji: "🍫" },
+      { id: "harina", name: "Harina de trigo", emoji: "🌾" }
+    ],
+    steps: [
+      { id: "s1", text: "Lavar el arroz en un colador bajo el grifo", emoji: "🚿" },
+      { id: "s2", text: "Calentar aceite con ajo en la olla", emoji: "🧄" },
+      { id: "s3", text: "Agregar el arroz y sofreír 2 minutos", emoji: "🍳" },
+      { id: "s4", text: "Verter agua (proporción 2:1 agua/arroz)", emoji: "💧" },
+      { id: "s5", text: "Agregar sal y llevar a ebullición", emoji: "🫧" },
+      { id: "s6", text: "Bajar fuego, tapar y cocinar 15-18 min sin destapar", emoji: "⏰" },
+      { id: "s7", text: "Dejar reposar 5 min y esponjar con tenedor", emoji: "🍚" }
+    ],
+    wrongSteps: [
+      { id: "ws1", text: "Freír el arroz en aceite hasta quemarlo", emoji: "🔥" },
+      { id: "ws2", text: "Agregar leche en vez de agua", emoji: "🥛" }
+    ]
+  },
+  {
+    id: 6,
+    name: "Lentejas Guisadas",
+    emoji: "🍲",
+    subtitle: "El plato nutritivo por excelencia",
+    ingredients: [
+      { id: "lentejas", name: "Lentejas", emoji: "🟤" },
+      { id: "cebolla", name: "Cebolla", emoji: "🧅" },
+      { id: "ajo", name: "Ajo", emoji: "🧄" },
+      { id: "tomate", name: "Tomate", emoji: "🍅" },
+      { id: "zanahoria", name: "Zanahoria", emoji: "🥕" },
+      { id: "papa", name: "Papa", emoji: "🥔" },
+      { id: "comino", name: "Comino", emoji: "🫙" },
+      { id: "caldo", name: "Caldo o agua", emoji: "💧" },
+      { id: "aceite", name: "Aceite", emoji: "🫒" },
+      { id: "sal", name: "Sal", emoji: "🧂" }
+    ],
+    wrongIngredients: [
+      { id: "helado", name: "Helado", emoji: "🍦" },
+      { id: "galletas", name: "Galletas dulces", emoji: "🍪" },
+      { id: "refresco", name: "Refresco", emoji: "🥤" }
+    ],
+    steps: [
+      { id: "s1", text: "Lavar y remojar las lentejas 30 minutos", emoji: "🫧" },
+      { id: "s2", text: "Picar cebolla, ajo, tomate y zanahoria", emoji: "🔪" },
+      { id: "s3", text: "Sofreír cebolla y ajo en aceite caliente", emoji: "🍳" },
+      { id: "s4", text: "Agregar tomate, zanahoria y comino", emoji: "🥕" },
+      { id: "s5", text: "Incorporar las lentejas escurridas", emoji: "🟤" },
+      { id: "s6", text: "Cubrir con caldo y agregar papa", emoji: "💧" },
+      { id: "s7", text: "Cocinar a fuego medio 30-40 min hasta tiernas", emoji: "⏰" },
+      { id: "s8", text: "Rectificar sal y servir caliente", emoji: "🍲" }
+    ],
+    wrongSteps: [
+      { id: "ws1", text: "Freír las lentejas en aceite profundo", emoji: "🔥" },
+      { id: "ws2", text: "Licuar todo y servir frío como smoothie", emoji: "🫗" }
+    ]
+  },
+  {
+    id: 7,
+    name: "Arroz con Pollo",
+    emoji: "🍗",
+    subtitle: "El plato familiar colombiano",
+    ingredients: [
+      { id: "arroz", name: "Arroz", emoji: "🍚" },
+      { id: "pollo", name: "Pechuga de pollo", emoji: "🍗" },
+      { id: "cebolla", name: "Cebolla", emoji: "🧅" },
+      { id: "ajo", name: "Ajo", emoji: "🧄" },
+      { id: "tomate", name: "Tomate", emoji: "🍅" },
+      { id: "zanahoria", name: "Zanahoria", emoji: "🥕" },
+      { id: "comino", name: "Comino", emoji: "🫙" },
+      { id: "caldo", name: "Caldo de pollo", emoji: "💧" },
+      { id: "cilantro", name: "Cilantro", emoji: "🌿" },
+      { id: "aceite", name: "Aceite", emoji: "🫒" },
+      { id: "sal", name: "Sal", emoji: "🧂" }
+    ],
+    wrongIngredients: [
+      { id: "chocolate", name: "Chocolate", emoji: "🍫" },
+      { id: "pan", name: "Pan dulce", emoji: "🍞" },
+      { id: "jalea", name: "Mermelada de fresa", emoji: "🍓" }
+    ],
+    steps: [
+      { id: "s1", text: "Sazonar el pollo con sal, comino y ajo", emoji: "🍗" },
+      { id: "s2", text: "Dorar el pollo en aceite por ambos lados", emoji: "🍳" },
+      { id: "s3", text: "Retirar pollo y sofreír cebolla, ajo y tomate", emoji: "🧅" },
+      { id: "s4", text: "Agregar zanahoria picada y el arroz lavado", emoji: "🥕" },
+      { id: "s5", text: "Verter caldo de pollo (proporción 2:1)", emoji: "💧" },
+      { id: "s6", text: "Colocar el pollo encima del arroz", emoji: "🍗" },
+      { id: "s7", text: "Tapar y cocinar a fuego bajo 20 minutos", emoji: "⏰" },
+      { id: "s8", text: "Dejar reposar, agregar cilantro y servir", emoji: "🌿" }
+    ],
+    wrongSteps: [
+      { id: "ws1", text: "Hervir el pollo solo en agua sin sazón", emoji: "🫗" },
+      { id: "ws2", text: "Mezclar con chocolate y hornear", emoji: "🍫" }
+    ]
+  },
+  {
+    id: 8,
+    name: "Pan Casero",
+    emoji: "🍞",
+    subtitle: "El arte de hacer pan desde cero",
+    ingredients: [
+      { id: "harina", name: "Harina de trigo", emoji: "🌾" },
+      { id: "levadura", name: "Levadura", emoji: "🟡" },
+      { id: "agua", name: "Agua tibia", emoji: "💧" },
+      { id: "sal", name: "Sal", emoji: "🧂" },
+      { id: "azucar", name: "Azúcar", emoji: "🍬" },
+      { id: "aceite", name: "Aceite / Mantequilla", emoji: "🧈" },
+      { id: "huevo", name: "Huevo", emoji: "🥚" }
+    ],
+    wrongIngredients: [
+      { id: "arroz", name: "Arroz", emoji: "🍚" },
+      { id: "pollo", name: "Pollo", emoji: "🍗" },
+      { id: "atun", name: "Atún en lata", emoji: "🐟" }
+    ],
+    steps: [
+      { id: "s1", text: "Activar levadura en agua tibia con azúcar (10 min)", emoji: "🟡" },
+      { id: "s2", text: "Mezclar harina y sal en un bowl grande", emoji: "🌾" },
+      { id: "s3", text: "Agregar levadura activada, huevo y aceite", emoji: "🥚" },
+      { id: "s4", text: "Amasar 10-15 min hasta masa elástica", emoji: "🤲" },
+      { id: "s5", text: "Dejar leudar 1 hora tapada hasta duplicar", emoji: "⏰" },
+      { id: "s6", text: "Desgasificar y dar forma al pan", emoji: "🍞" },
+      { id: "s7", text: "Dejar leudar 30 min más en bandeja", emoji: "⏰" },
+      { id: "s8", text: "Hornear a 180°C por 25-30 min hasta dorado", emoji: "🔥" },
+      { id: "s9", text: "Dejar enfriar y ¡disfrutar el pan fresco!", emoji: "🎉" }
+    ],
+    wrongSteps: [
+      { id: "ws1", text: "Freír la masa en aceite caliente", emoji: "🔥" },
+      { id: "ws2", text: "Congelar la masa sin dejar leudar", emoji: "🧊" }
+    ]
+  }
+];
+
+// ==================== GAME STATE ====================
+let currentLevel = 0;
+let currentPhase = 'ingredients';
+let score = 0;
+let selectedIngredientIds = new Set();
+let orderedSteps = [];
+let ingredientPhaseComplete = false;
+let stepPhaseComplete = false;
+let mistakes = 0;
+let draggedStepItem = null;
+let shuffledIngredientItems = [];
+let shuffledStepItems = [];
+let verificationTimeout = null;
+
+// ==================== INITIALIZATION ====================
+function startGame() {
+  document.getElementById('welcomeScreen').classList.add('hidden');
+  loadLevel(0);
+}
+
+function loadLevel(levelIndex) {
+  currentLevel = levelIndex;
+  currentPhase = 'ingredients';
+  selectedIngredientIds = new Set();
+  orderedSteps = [];
+  ingredientPhaseComplete = false;
+  stepPhaseComplete = false;
+  mistakes = 0;
+
+  if (verificationTimeout) {
+    clearTimeout(verificationTimeout);
+    verificationTimeout = null;
+  }
+
+  const level = levels[currentLevel];
+  document.getElementById('recipeTitle').textContent = level.name;
+  document.getElementById('recipeSubtitle').textContent = level.subtitle;
+  document.getElementById('resultDisplay').textContent = level.emoji;
+  document.getElementById('resultDisplay').className = 'result-display';
+  document.getElementById('resultMessage').textContent = '';
+  document.getElementById('resultMessage').className = 'result-message';
+  document.getElementById('stepIndicator').textContent = 'Fase 1: Selecciona los ingredientes correctos';
+  document.getElementById('levelDisplay').textContent = `📖 Nivel ${currentLevel + 1}/8`;
+  document.getElementById('scoreDisplay').textContent = `⭐ Puntos: ${score}`;
+
+  document.getElementById('tabIngredients').classList.add('active');
+  document.getElementById('tabSteps').classList.remove('active');
+  document.getElementById('tabSteps').disabled = true;
+
+  updateLevelProgress();
+  renderIngredientPhase();
+  renderCookingProgress();
+}
+
+function updateLevelProgress() {
+  const container = document.getElementById('levelProgress');
+  container.innerHTML = '';
+  for (let i = 0; i < levels.length; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'level-dot';
+    dot.textContent = i + 1;
+    dot.title = levels[i].name;
+    if (i < currentLevel) dot.classList.add('completed');
+    else if (i === currentLevel) dot.classList.add('active');
+    else dot.classList.add('locked');
+    if (i <= currentLevel) {
+      dot.onclick = () => { if (i < currentLevel) loadLevel(i); };
+    }
+    container.appendChild(dot);
+    if (i < levels.length - 1) {
+      const conn = document.createElement('div');
+      conn.className = 'level-connector' + (i < currentLevel ? ' completed' : '');
+      container.appendChild(conn);
+    }
+  }
+}
+
+// ==================== INGREDIENT PHASE (STATE-DRIVEN) ====================
+function renderIngredientPhase() {
+  const level = levels[currentLevel];
+  const content = document.getElementById('phaseContent');
+
+  shuffledIngredientItems = shuffleArray([...level.ingredients, ...level.wrongIngredients]);
+
+  content.innerHTML = `
+    <div class="hint-box">
+      <span class="hint-icon">💡</span>
+      <span>Haz clic en los ingredientes correctos para preparar <strong>${level.name}</strong>. ¡Cuidado con los incorrectos! Puedes deselectar haciendo clic de nuevo.</span>
+    </div>
+    <div class="phase-title">🧺 Ingredientes disponibles</div>
+    <div class="items-pool" id="ingredientsPool"></div>
+    <div class="selected-count" id="selectedCount">Seleccionados: 0 / ${level.ingredients.length} correctos necesarios</div>
+    <div class="phase-title">✅ Tu selección</div>
+    <div class="drop-zone" id="selectedIngredients">
+      <div class="drop-zone-label" id="selectedLabel">Haz clic en los ingredientes de arriba para seleccionarlos</div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="checkIngredients()">✓ Verificar Ingredientes</button>
+      <button class="btn btn-secondary" onclick="resetIngredients()">🔄 Reiniciar</button>
+    </div>
+  `;
+
+  const pool = document.getElementById('ingredientsPool');
+  shuffledIngredientItems.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'item-card';
+    card.setAttribute('data-id', item.id);
+    card.innerHTML = `<span class="emoji">${item.emoji}</span> ${item.name}`;
+    card.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleIngredientSelection(item.id);
+    });
+    pool.appendChild(card);
+  });
+
+  updateSelectedDisplay();
+}
+
+function toggleIngredientSelection(itemId) {
+  if (selectedIngredientIds.has(itemId)) {
+    selectedIngredientIds.delete(itemId);
+  } else {
+    selectedIngredientIds.add(itemId);
+  }
+  updateSelectedDisplay();
+}
+
+function updateSelectedDisplay() {
+  const level = levels[currentLevel];
+  const pool = document.getElementById('ingredientsPool');
+  const selectedZone = document.getElementById('selectedIngredients');
+  const countEl = document.getElementById('selectedCount');
+
+  if (!pool || !selectedZone) return;
+
+  // Update pool cards visual state
+  const poolCards = pool.querySelectorAll('.item-card');
+  poolCards.forEach(card => {
+    const cardId = card.getAttribute('data-id');
+    if (selectedIngredientIds.has(cardId)) {
+      card.classList.add('selected');
+    } else {
+      card.classList.remove('selected');
+      card.classList.remove('correct', 'incorrect');
+    }
+  });
+
+  // Rebuild selected zone from state
+  selectedZone.innerHTML = '';
+  if (selectedIngredientIds.size === 0) {
+    selectedZone.innerHTML = '<div class="drop-zone-label">Haz clic en los ingredientes de arriba para seleccionarlos</div>';
+  } else {
+    selectedIngredientIds.forEach(id => {
+      const item = shuffledIngredientItems.find(i => i.id === id);
+      if (item) {
+        const card = document.createElement('div');
+        card.className = 'item-card selected';
+        card.setAttribute('data-id', item.id);
+        card.innerHTML = `<span class="emoji">${item.emoji}</span> ${item.name}`;
+        card.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleIngredientSelection(item.id);
+        });
+        selectedZone.appendChild(card);
+      }
+    });
+  }
+
+  // Update count
+  if (countEl) {
+    countEl.textContent = `Seleccionados: ${selectedIngredientIds.size} / ${level.ingredients.length} correctos necesarios`;
+  }
+}
+
+function checkIngredients() {
+  if (verificationTimeout) {
+    clearTimeout(verificationTimeout);
+    verificationTimeout = null;
+  }
+
+  const level = levels[currentLevel];
+  const correctIds = new Set(level.ingredients.map(i => i.id));
+  const selectedIds = new Set(selectedIngredientIds);
+
+  let hasWrongSelection = false;
+  let missingCorrect = false;
+
+  // Check for wrong selections
+  selectedIds.forEach(id => {
+    if (!correctIds.has(id)) {
+      hasWrongSelection = true;
+    }
+  });
+
+  // Check for missing correct ingredients
+  correctIds.forEach(id => {
+    if (!selectedIds.has(id)) {
+      missingCorrect = true;
+    }
+  });
+
+  // Visual feedback on pool cards
+  const pool = document.getElementById('ingredientsPool');
+  const poolCards = pool.querySelectorAll('.item-card');
+  poolCards.forEach(card => {
+    const cardId = card.getAttribute('data-id');
+    if (selectedIds.has(cardId)) {
+      if (correctIds.has(cardId)) {
+        card.classList.add('correct');
+        card.classList.remove('incorrect');
+      } else {
+        card.classList.add('incorrect');
+        card.classList.remove('correct');
+      }
+    }
+  });
+
+  // Also mark correct ones that were NOT selected
+  poolCards.forEach(card => {
+    const cardId = card.getAttribute('data-id');
+    if (!selectedIds.has(cardId) && correctIds.has(cardId)) {
+      card.style.outline = '2px dashed ' + getComputedStyle(document.documentElement).getPropertyValue('--success');
+      card.style.outlineOffset = '2px';
+    } else {
+      card.style.outline = 'none';
+      card.style.outlineOffset = '0';
+    }
+  });
+
+  if (!hasWrongSelection && !missingCorrect) {
+    // SUCCESS
+    ingredientPhaseComplete = true;
+    score += 10;
+    document.getElementById('scoreDisplay').textContent = `⭐ Puntos: ${score}`;
+    showSuccessOnLeft('¡Ingredientes correctos! 🎉');
+    createSuccessParticles();
+
+    verificationTimeout = setTimeout(() => {
+      document.getElementById('tabSteps').disabled = false;
+      switchPhase('steps');
+    }, 1500);
+  } else {
+    // FAILURE
+    mistakes++;
+    score = Math.max(0, score - 3);
+    document.getElementById('scoreDisplay').textContent = `⭐ Puntos: ${score}`;
+
+    let errorMsg = '';
+    if (hasWrongSelection && missingCorrect) {
+      errorMsg = '¡Hay ingredientes incorrectos y faltan correctos!';
+    } else if (hasWrongSelection) {
+      errorMsg = '¡Hay ingredientes incorrectos en tu selección!';
+    } else {
+      errorMsg = '¡Faltan ingredientes correctos! (marcados con borde verde)';
+    }
+    showFailureOnLeft(errorMsg);
+    createSmokeEffect();
+
+    verificationTimeout = setTimeout(() => {
+      poolCards.forEach(c => {
+        c.classList.remove('correct', 'incorrect');
+        c.style.outline = 'none';
+        c.style.outlineOffset = '0';
+      });
+      // Also clear from selected zone
+      const selCards = document.getElementById('selectedIngredients').querySelectorAll('.item-card');
+      selCards.forEach(c => {
+        c.classList.remove('correct', 'incorrect');
+      });
+    }, 2000);
+  }
+}
+
+function resetIngredients() {
+  if (verificationTimeout) {
+    clearTimeout(verificationTimeout);
+    verificationTimeout = null;
+  }
+  selectedIngredientIds = new Set();
+  renderIngredientPhase();
+}
+
+// ==================== STEPS PHASE ====================
+function switchPhase(phase) {
+  if (phase === 'steps' && !ingredientPhaseComplete) return;
+  currentPhase = phase;
+
+  document.getElementById('tabIngredients').classList.toggle('active', phase === 'ingredients');
+  document.getElementById('tabSteps').classList.toggle('active', phase === 'steps');
+
+  if (phase === 'steps') {
+    document.getElementById('stepIndicator').textContent = 'Fase 2: Ordena los pasos correctamente';
+    renderStepsPhase();
+  } else {
+    document.getElementById('stepIndicator').textContent = 'Fase 1: Selecciona los ingredientes correctos';
+    renderIngredientPhase();
+  }
+}
+
+function renderStepsPhase() {
+  const level = levels[currentLevel];
+  const content = document.getElementById('phaseContent');
+
+  shuffledStepItems = shuffleArray([...level.steps, ...level.wrongSteps]);
+  orderedSteps = [];
+
+  content.innerHTML = `
+    <div class="hint-box">
+      <span class="hint-icon">💡</span>
+      <span>Ordena los pasos correctamente para preparar <strong>${level.name}</strong>. Haz clic en un paso para agregarlo, o arrástralo para reordenar. Doble clic en la zona de orden para remover.</span>
+    </div>
+    <div class="phase-title">📋 Pasos disponibles (clic para agregar)</div>
+    <div class="items-pool" id="stepsPool"></div>
+    <div class="phase-title">📝 Tu orden de pasos (doble clic para remover)</div>
+    <div class="drop-zone" id="orderedSteps" style="min-height:100px; flex-direction:column;">
+      <div class="drop-zone-label" id="stepsLabel">Haz clic en los pasos de arriba para agregarlos en orden</div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-success" onclick="checkSteps()">✓ Verificar Pasos</button>
+      <button class="btn btn-secondary" onclick="resetSteps()">🔄 Reiniciar Pasos</button>
+    </div>
+  `;
+
+  const pool = document.getElementById('stepsPool');
+  shuffledStepItems.forEach((step) => {
+    const slot = createStepCard(step, false);
+    pool.appendChild(slot);
+  });
+
+  renderOrderedSteps();
+}
+
+function createStepCard(step, inOrder) {
+  const slot = document.createElement('div');
+  slot.className = 'step-slot';
+  slot.setAttribute('data-id', step.id);
+  slot.innerHTML = `
+    <span class="step-number">${inOrder ? (orderedSteps.findIndex(s => s.id === step.id) + 1) : '?'}</span>
+    <span>${step.emoji} ${step.text}</span>
+  `;
+
+  if (!inOrder) {
+    slot.style.cursor = 'pointer';
+    slot.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      addStepToOrder(step.id);
+    });
+  } else {
+    slot.draggable = true;
+    slot.addEventListener('dblclick', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      removeStepFromOrder(step.id);
+    });
+    slot.addEventListener('dragstart', function(e) {
+      draggedStepItem = step;
+      slot.classList.add('dragging');
+      e.dataTransfer.setData('text/plain', step.id);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    slot.addEventListener('dragend', function() {
+      slot.classList.remove('dragging');
+      draggedStepItem = null;
+    });
+    slot.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      if (draggedStepItem && draggedStepItem.id !== step.id) {
+        slot.style.borderTopColor = 'var(--primary)';
+        slot.style.borderTopWidth = '3px';
+      }
+    });
+    slot.addEventListener('dragleave', function() {
+      slot.style.borderTopColor = '';
+      slot.style.borderTopWidth = '';
+    });
+    slot.addEventListener('drop', function(e) {
+      e.preventDefault();
+      slot.style.borderTopColor = '';
+      slot.style.borderTopWidth = '';
+      if (draggedStepItem && draggedStepItem.id !== step.id) {
+        const fromIdx = orderedSteps.findIndex(s => s.id === draggedStepItem.id);
+        const toIdx = orderedSteps.findIndex(s => s.id === step.id);
+        if (fromIdx !== -1 && toIdx !== -1) {
+          orderedSteps.splice(fromIdx, 1);
+          const newToIdx = orderedSteps.findIndex(s => s.id === step.id);
+          orderedSteps.splice(newToIdx, 0, draggedStepItem);
+          renderOrderedSteps();
+        }
+      }
+    });
+  }
+
+  return slot;
+}
+
+function addStepToOrder(stepId) {
+  if (orderedSteps.find(s => s.id === stepId)) return;
+  const step = shuffledStepItems.find(s => s.id === stepId);
+  if (!step) return;
+  orderedSteps.push(step);
+  renderOrderedSteps();
+
+  // Remove from pool
+  const pool = document.getElementById('stepsPool');
+  if (pool) {
+    const poolCard = pool.querySelector(`[data-id="${stepId}"]`);
+    if (poolCard) poolCard.remove();
+  }
+}
+
+function removeStepFromOrder(stepId) {
+  const step = orderedSteps.find(s => s.id === stepId);
+  if (!step) return;
+  orderedSteps = orderedSteps.filter(s => s.id !== stepId);
+  renderOrderedSteps();
+
+  // Add back to pool
+  const pool = document.getElementById('stepsPool');
+  if (pool) {
+    const existingCard = createStepCard(step, false);
+    pool.appendChild(existingCard);
+  }
+}
+
+function renderOrderedSteps() {
+  const dropZone = document.getElementById('orderedSteps');
+  if (!dropZone) return;
+
+  dropZone.innerHTML = '';
+
+  if (orderedSteps.length === 0) {
+    dropZone.innerHTML = '<div class="drop-zone-label">Haz clic en los pasos de arriba para agregarlos en orden</div>';
+    return;
+  }
+
+  orderedSteps.forEach((step, idx) => {
+    const slot = document.createElement('div');
+    slot.className = 'step-slot';
+    slot.setAttribute('data-id', step.id);
+    slot.draggable = true;
+    slot.innerHTML = `
+      <span class="step-number">${idx + 1}</span>
+      <span>${step.emoji} ${step.text}</span>
+    `;
+    slot.addEventListener('dblclick', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      removeStepFromOrder(step.id);
+    });
+    slot.addEventListener('dragstart', function(e) {
+      draggedStepItem = step;
+      slot.classList.add('dragging');
+      e.dataTransfer.setData('text/plain', step.id);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    slot.addEventListener('dragend', function() {
+      slot.classList.remove('dragging');
+      draggedStepItem = null;
+      document.querySelectorAll('.step-slot').forEach(s => {
+        s.style.borderTopColor = '';
+        s.style.borderTopWidth = '';
+      });
+    });
+    slot.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      if (draggedStepItem && draggedStepItem.id !== step.id) {
+        slot.style.borderTopColor = 'var(--primary)';
+        slot.style.borderTopWidth = '3px';
+      }
+    });
+    slot.addEventListener('dragleave', function() {
+      slot.style.borderTopColor = '';
+      slot.style.borderTopWidth = '';
+    });
+    slot.addEventListener('drop', function(e) {
+      e.preventDefault();
+      slot.style.borderTopColor = '';
+      slot.style.borderTopWidth = '';
+      if (draggedStepItem && draggedStepItem.id !== step.id) {
+        const fromIdx = orderedSteps.findIndex(s => s.id === draggedStepItem.id);
+        const toIdx = orderedSteps.findIndex(s => s.id === step.id);
+        if (fromIdx !== -1 && toIdx !== -1) {
+          orderedSteps.splice(fromIdx, 1);
+          const newToIdx = orderedSteps.findIndex(s => s.id === step.id);
+          orderedSteps.splice(newToIdx, 0, draggedStepItem);
+          renderOrderedSteps();
+        }
+      }
+    });
+    dropZone.appendChild(slot);
+  });
+}
+
+function checkSteps() {
+  const level = levels[currentLevel];
+  const correctOrder = level.steps.map(s => s.id);
+  const userOrder = orderedSteps.map(s => s.id);
+  const wrongStepIds = new Set(level.wrongSteps.map(s => s.id));
+
+  const hasWrongSteps = userOrder.some(id => wrongStepIds.has(id));
+  const isCorrectOrder = correctOrder.length === userOrder.length &&
+    correctOrder.every((id, idx) => id === userOrder[idx]);
+
+  const dropZone = document.getElementById('orderedSteps');
+  const slots = dropZone.querySelectorAll('.step-slot');
+
+  if (isCorrectOrder && !hasWrongSteps) {
+    stepPhaseComplete = true;
+    score += 15;
+    document.getElementById('scoreDisplay').textContent = `⭐ Puntos: ${score}`;
+    slots.forEach(s => s.classList.add('correct'));
+    showLevelComplete();
+  } else {
+    mistakes++;
+    score = Math.max(0, score - 5);
+    document.getElementById('scoreDisplay').textContent = `⭐ Puntos: ${score}`;
+
+    slots.forEach((slot, idx) => {
+      const stepId = slot.getAttribute('data-id');
+      if (wrongStepIds.has(stepId)) {
+        slot.classList.add('incorrect');
+      } else if (idx < correctOrder.length && correctOrder[idx] === stepId) {
+        slot.classList.add('correct');
+      } else {
+        slot.classList.add('incorrect');
+      }
+    });
+
+    if (hasWrongSteps) {
+      showFailureOnLeft('¡Hay pasos incorrectos en tu secuencia!');
+    } else if (userOrder.length < correctOrder.length) {
+      showFailureOnLeft('¡Faltan pasos en tu secuencia!');
+    } else {
+      showFailureOnLeft('¡El orden de los pasos no es correcto!');
+    }
+    createSmokeEffect();
+
+    verificationTimeout = setTimeout(() => {
+      slots.forEach(s => s.classList.remove('correct', 'incorrect'));
+    }, 2000);
+  }
+}
+
+function resetSteps() {
+  if (verificationTimeout) {
+    clearTimeout(verificationTimeout);
+    verificationTimeout = null;
+  }
+  orderedSteps = [];
+  renderStepsPhase();
+}
+
+// ==================== VISUAL EFFECTS ====================
+function showSuccessOnLeft(message) {
+  const display = document.getElementById('resultDisplay');
+  const msg = document.getElementById('resultMessage');
+  display.className = 'result-display success';
+  msg.textContent = message;
+  msg.className = 'result-message success';
+
+  const overlay = document.getElementById('failOverlay');
+  overlay.innerHTML = '<div class="success-text">¡CORRECTO!</div>';
+  overlay.classList.add('show');
+  setTimeout(() => overlay.classList.remove('show'), 1500);
+}
+
+function showFailureOnLeft(message) {
+  const display = document.getElementById('resultDisplay');
+  const msg = document.getElementById('resultMessage');
+  display.className = 'result-display failure';
+  msg.textContent = message;
+  msg.className = 'result-message failure';
+
+  const overlay = document.getElementById('failOverlay');
+  overlay.innerHTML = '<div class="fail-text">¡INCORRECTO!</div>';
+  overlay.classList.add('show');
+  setTimeout(() => overlay.classList.remove('show'), 1200);
+}
+
+function createSuccessParticles() {
+  const anim = document.getElementById('cookingAnimation');
+  const colors = ['#FF6B35', '#F7C948', '#2ECC71', '#3498DB', '#9B59B6', '#E74C3C'];
+
+  for (let i = 0; i < 30; i++) {
+    setTimeout(() => {
+      const conf = document.createElement('div');
+      conf.className = 'confetti';
+      conf.style.left = Math.random() * 100 + '%';
+      conf.style.top = '-10px';
+      conf.style.background = colors[Math.floor(Math.random() * colors.length)];
+      conf.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+      conf.style.width = (5 + Math.random() * 10) + 'px';
+      conf.style.height = (5 + Math.random() * 10) + 'px';
+      conf.style.animationDuration = (1.5 + Math.random() * 1.5) + 's';
+      anim.appendChild(conf);
+      setTimeout(() => conf.remove(), 3000);
+    }, i * 50);
+  }
+
+  for (let i = 0; i < 8; i++) {
+    setTimeout(() => {
+      const sp = document.createElement('div');
+      sp.className = 'sparkle';
+      sp.textContent = ['✨', '⭐', '🌟', '💫'][Math.floor(Math.random() * 4)];
+      sp.style.left = (20 + Math.random() * 60) + '%';
+      sp.style.top = (30 + Math.random() * 40) + '%';
+      anim.appendChild(sp);
+      setTimeout(() => sp.remove(), 1200);
+    }, i * 150);
+  }
+}
+
+function createSmokeEffect() {
+  const anim = document.getElementById('cookingAnimation');
+  for (let i = 0; i < 6; i++) {
+    setTimeout(() => {
+      const smoke = document.createElement('div');
+      smoke.className = 'smoke';
+      smoke.style.left = (30 + Math.random() * 40) + '%';
+      smoke.style.bottom = '30%';
+      anim.appendChild(smoke);
+      setTimeout(() => smoke.remove(), 2500);
+    }, i * 200);
+  }
+
+  for (let i = 0; i < 5; i++) {
+    setTimeout(() => {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.textContent = '❌';
+      p.style.fontSize = '1.5rem';
+      p.style.left = (40 + Math.random() * 20) + '%';
+      p.style.top = (40 + Math.random() * 20) + '%';
+      p.style.setProperty('--tx', (Math.random() * 100 - 50) + 'px');
+      p.style.setProperty('--ty', (Math.random() * 100 - 50) + 'px');
+      p.style.background = 'none';
+      anim.appendChild(p);
+      setTimeout(() => p.remove(), 1200);
+    }, i * 100);
+  }
+}
+
+function createFloatingIngredient(emoji) {
+  const anim = document.getElementById('cookingAnimation');
+  const el = document.createElement('div');
+  el.className = 'floating-ingredient';
+  el.textContent = emoji;
+  el.style.left = (30 + Math.random() * 40) + '%';
+  el.style.top = (30 + Math.random() * 40) + '%';
+  anim.appendChild(el);
+  setTimeout(() => el.remove(), 800);
+}
+
+// ==================== LEVEL COMPLETE ====================
+function showLevelComplete() {
+  const level = levels[currentLevel];
+  const display = document.getElementById('resultDisplay');
+  display.className = 'result-display success';
+  display.textContent = level.emoji;
+  createSuccessParticles();
+
+  const msg = document.getElementById('resultMessage');
+  msg.textContent = `¡${level.name} preparado con éxito! 🎉`;
+  msg.className = 'result-message success';
+  updateCookingProgressAllDone();
+
+  setTimeout(() => {
+    const overlay = document.getElementById('completionOverlay');
+    const stars = mistakes === 0 ? '⭐⭐⭐' : mistakes <= 2 ? '⭐⭐' : '⭐';
+    const emoji = mistakes === 0 ? '🏆' : mistakes <= 2 ? '🎉' : '✅';
+
+    document.getElementById('completionEmoji').textContent = emoji;
+    document.getElementById('completionTitle').textContent =
+      currentLevel === levels.length - 1 ? '¡JUEGO COMPLETADO!' : '¡Nivel Completado!';
+    document.getElementById('completionStars').textContent = stars;
+    document.getElementById('completionText').textContent =
+      `¡Has preparado ${level.name}! Puntuación: ${score} puntos`;
+
+    const btn = document.getElementById('completionBtn');
+    if (currentLevel === levels.length - 1) {
+      btn.textContent = '🎊 ¡Jugar de Nuevo!';
+      btn.onclick = () => {
+        overlay.classList.remove('show');
+        score = 0;
+        document.getElementById('scoreDisplay').textContent = `⭐ Puntos: ${score}`;
+        loadLevel(0);
+      };
+    } else {
+      btn.textContent = 'Siguiente Nivel ➡️';
+      btn.onclick = nextLevel;
+    }
+    overlay.classList.add('show');
+  }, 2000);
+}
+
+function nextLevel() {
+  document.getElementById('completionOverlay').classList.remove('show');
+  if (currentLevel < levels.length - 1) {
+    loadLevel(currentLevel + 1);
+  }
+}
+
+// ==================== COOKING PROGRESS ====================
+function renderCookingProgress() {
+  const level = levels[currentLevel];
+  const container = document.getElementById('cookingProgress');
+  let html = '<ul class="cooking-step-list">';
+  level.steps.forEach((step, idx) => {
+    html += `<li class="cooking-step-item" id="cs-${idx}">
+      <span class="cs-icon">${step.emoji}</span>
+      <span>${step.text}</span>
+    </li>`;
+  });
+  html += '</ul>';
+  container.innerHTML = html;
+}
+
+function updateCookingProgressAllDone() {
+  const level = levels[currentLevel];
+  level.steps.forEach((_, idx) => {
+    const el = document.getElementById(`cs-${idx}`);
+    if (el) {
+      setTimeout(() => {
+        el.className = 'cooking-step-item done';
+        createFloatingIngredient(level.steps[idx].emoji);
+      }, idx * 300);
+    }
+  });
+}
+
+// ==================== UTILITIES ====================
+function shuffleArray(arr) {
+  const shuffled = [...arr];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'r' || e.key === 'R') {
+    if (currentPhase === 'ingredients') resetIngredients();
+    else resetSteps();
+  }
+});
+
+updateLevelProgress();
+</script>
+</body>
+</html>
